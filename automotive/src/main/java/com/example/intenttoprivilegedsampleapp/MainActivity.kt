@@ -13,6 +13,7 @@ import androidx.appcompat.app.AppCompatActivity
 class MainActivity : AppCompatActivity() {
     private lateinit var numberPicker: NumberPicker
     private lateinit var temperatureReceiver: BroadcastReceiver
+    private lateinit var temperatureReceiver2: BroadcastReceiver
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,7 +41,7 @@ class MainActivity : AppCompatActivity() {
         // Temperature取得のBroadcastReceiver登録
         temperatureReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context, intent: Intent) {
-                val temperature = intent.getFloatExtra("RESULT_VALUE", -1f)
+                val temperature = intent.getFloatExtra("TEMPERATURE_VALUE", -1f)
                 if (temperature >= 16f && temperature <= 32f) {
                     numberPicker.value = temperature.toInt()
                     Log.d("ClientApp", "Temperature received: $temperature")
@@ -50,9 +51,24 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        temperatureReceiver2 = object : BroadcastReceiver() {
+            override fun onReceive(context: Context, intent: Intent) {
+                val temperature = intent.getFloatExtra("TEMPERATURE_VALUE", -1f)
+                if (temperature >= 16f && temperature <= 32f) {
+                    numberPicker.value = temperature.toInt()
+                    Log.d("ClientApp", "2: TEMPERATURE_VALUE received: $temperature")
+                } else {
+                    Log.e("ClientApp", "2: Invalid TEMPERATURE_VALUE received: $temperature")
+                }
+            }
+        }
+
         // 外部アプリからのブロードキャストを受信するために RECEIVER_EXPORTED を指定
         val filter = IntentFilter("com.example.privilegedsampleapp.RESULT_TEMPERATURE")
         registerReceiver(temperatureReceiver, filter, Context.RECEIVER_EXPORTED)
+
+        val filter2 = IntentFilter("com.example.privilegedsampleapp.TEMPERATURE_VALUE")
+        registerReceiver(temperatureReceiver2, filter2, Context.RECEIVER_EXPORTED)
     }
 
     override fun onDestroy() {
@@ -63,7 +79,7 @@ class MainActivity : AppCompatActivity() {
     private fun sendSetTemperatureIntent(value: Float) {
         val intent = Intent("com.example.privilegedsampleapp.ACTION_SET_TEMPERATURE")
         intent.setPackage("com.example.privilegedsampleapp")
-        intent.putExtra("EXTRA_VALUE", value)
+        intent.putExtra("TEMPERATURE_VALUE", value)
         sendBroadcast(intent)
         Log.d("ClientApp", "Set temperature intent sent: $value")
     }
